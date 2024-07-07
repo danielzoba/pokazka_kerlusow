@@ -1,7 +1,10 @@
 #include <iostream>
+#include <fstream>
+#include <string>
 
 #include <winsock2.h>
 #pragma comment(lib,"ws2_32.lib") 
+#include <ws2tcpip.h>
 
 static WSADATA ws;
 static SOCKET client_socket;
@@ -29,10 +32,28 @@ int main()
 	memset((char*)&server, 0, sizeof(server));
 	server.sin_family = AF_INET;
 	server.sin_port = htons(PORT);
-	server.sin_addr.S_un.S_addr = inet_addr(SERVER);
-
+	// server.sin_addr.S_un.S_addr = inet_addr(SERVER);
+	InetPton(AF_INET, __TEXT("127.0.0.1"), &server.sin_addr.s_addr);
 
     std::cout << "Sćelu demo-daty!\n";
+
+	std::ifstream demodata("demodata.txt");
+	if (demodata.is_open())
+	{
+		std::string oneline;
+		while (std::getline(demodata, oneline))
+		{
+			std::cout << oneline << '\n';
+
+
+		}
+		demodata.close();
+	}
+	else
+	{
+		std::cout << "Njemóžu dataju 'demodata.txt' wočinić!" << std::endl;
+	}
+
 
 	closesocket(client_socket);
 	WSACleanup();
