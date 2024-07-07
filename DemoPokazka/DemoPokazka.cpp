@@ -88,8 +88,13 @@ int main()
 					char udpBytesReadable[62];
 					std::copy(udpBytes.begin(), udpBytes.end(), udpBytesReadable);
 
-					// std::string udpBytesReadable(const_cast<const char*[62]>(&udpBytesReadable), udpBytes.size());
 					std::cout << "UDP: '" << udpBytesReadable << "'" << std::endl;
+
+					// send the message
+					if (sendto(client_socket, udpBytesReadable, 61, 0, (sockaddr*)&server, sizeof(sockaddr_in)) == SOCKET_ERROR) {
+						std::cout << "sendto() failed with error code: " << WSAGetLastError() << "\n";
+						// exit(EXIT_FAILURE);
+					}
 				}
 				else
 				{
