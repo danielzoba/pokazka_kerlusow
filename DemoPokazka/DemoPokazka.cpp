@@ -5,6 +5,10 @@
 #include <chrono>
 #include <thread>
 
+#include <vector>
+
+#include <cassert>
+
 #include <winsock2.h>
 #pragma comment(lib,"ws2_32.lib") 
 #include <ws2tcpip.h>
@@ -48,16 +52,44 @@ int main()
 		std::string oneline;
 		while (std::getline(demodata, oneline))
 		{
-			std::cout << oneline << '\n';
+			
 			if (oneline.find("#") == 0)
 			{
-				std::cout << "Comment line ignored!" << std::endl;
+				std::cout << oneline << '\n';
+				// std::cout << "Comment line ignored!" << std::endl;
 			}
 			else
 			{
 				if (oneline.length() == 182)
 				{
-					std::cout << "Expect a UDP packet of fixed size!" << std::endl;
+					// std::cout << "Expect a UDP packet of fixed size!" << std::endl;
+					const char *cstr = oneline.c_str();
+					size_t cstr_len = oneline.length();
+					size_t index = 0;
+					std::vector<uint8_t> udpBytes;
+					while (index < cstr_len)
+					{
+						if (cstr[index] == ' ')
+						{
+							index++;
+						}
+						else
+						{
+							uint16_t oneByte;
+							sscanf_s(cstr + index, "%2hX", &oneByte);
+							udpBytes.push_back((uint8_t) oneByte);
+							index += 2;
+						}
+					}
+					assert(udpBytes.size() == 61);
+
+					udpBytes.push_back(0);
+
+					char udpBytesReadable[62];
+					std::copy(udpBytes.begin(), udpBytes.end(), udpBytesReadable);
+
+					// std::string udpBytesReadable(const_cast<const char*[62]>(&udpBytesReadable), udpBytes.size());
+					std::cout << "UDP: '" << udpBytesReadable << "'" << std::endl;
 				}
 				else
 				{
