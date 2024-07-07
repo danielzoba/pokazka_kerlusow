@@ -1,20 +1,40 @@
-// DemoPokazka.cpp : Diese Datei enthält die Funktion "main". Hier beginnt und endet die Ausführung des Programms.
-//
-
 #include <iostream>
+
+#include <winsock2.h>
+#pragma comment(lib,"ws2_32.lib") 
+
+static WSADATA ws;
+static SOCKET client_socket;
+static sockaddr_in server;
+
+#define SERVER "127.0.0.1"
+#define PORT 49200
 
 int main()
 {
-    std::cout << "Hello World!\n";
+	std::cout << "Winsock init...\n";
+	if (WSAStartup(MAKEWORD(2, 2), &ws) != 0) {
+		std::cout << "Failed. Error Code: " << WSAGetLastError() << "\n";
+		exit(EXIT_FAILURE);
+	}
+	std::cout << "Init ok.\n";
+
+	// create socket
+	if ((client_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == SOCKET_ERROR) {
+		std::cout << "socket() failed with error code: " << WSAGetLastError() << "\n";
+		exit(EXIT_FAILURE);
+	}
+
+	// setup address structure
+	memset((char*)&server, 0, sizeof(server));
+	server.sin_family = AF_INET;
+	server.sin_port = htons(PORT);
+	server.sin_addr.S_un.S_addr = inet_addr(SERVER);
+
+
+    std::cout << "Sćelu demo-daty!\n";
+
+	closesocket(client_socket);
+	WSACleanup();
+
 }
-
-// Programm ausführen: STRG+F5 oder "Debuggen" > Menü "Ohne Debuggen starten"
-// Programm debuggen: F5 oder "Debuggen" > Menü "Debuggen starten"
-
-// Tipps für den Einstieg: 
-//   1. Verwenden Sie das Projektmappen-Explorer-Fenster zum Hinzufügen/Verwalten von Dateien.
-//   2. Verwenden Sie das Team Explorer-Fenster zum Herstellen einer Verbindung mit der Quellcodeverwaltung.
-//   3. Verwenden Sie das Ausgabefenster, um die Buildausgabe und andere Nachrichten anzuzeigen.
-//   4. Verwenden Sie das Fenster "Fehlerliste", um Fehler anzuzeigen.
-//   5. Wechseln Sie zu "Projekt" > "Neues Element hinzufügen", um neue Codedateien zu erstellen, bzw. zu "Projekt" > "Vorhandenes Element hinzufügen", um dem Projekt vorhandene Codedateien hinzuzufügen.
-//   6. Um dieses Projekt später erneut zu öffnen, wechseln Sie zu "Datei" > "Öffnen" > "Projekt", und wählen Sie die SLN-Datei aus.
