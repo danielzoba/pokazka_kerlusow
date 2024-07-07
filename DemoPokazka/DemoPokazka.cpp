@@ -2,6 +2,9 @@
 #include <fstream>
 #include <string>
 
+#include <chrono>
+#include <thread>
+
 #include <winsock2.h>
 #pragma comment(lib,"ws2_32.lib") 
 #include <ws2tcpip.h>
@@ -15,6 +18,8 @@ static sockaddr_in server;
 
 int main()
 {
+	SetConsoleOutputCP(CP_UTF8);
+
 	std::cout << "Winsock init...\n";
 	if (WSAStartup(MAKEWORD(2, 2), &ws) != 0) {
 		std::cout << "Failed. Error Code: " << WSAGetLastError() << "\n";
@@ -44,8 +49,23 @@ int main()
 		while (std::getline(demodata, oneline))
 		{
 			std::cout << oneline << '\n';
-
-
+			if (oneline.find("#") == 0)
+			{
+				std::cout << "Comment line ignored!" << std::endl;
+			}
+			else
+			{
+				if (oneline.length() == 182)
+				{
+					std::cout << "Expect a UDP packet of fixed size!" << std::endl;
+				}
+				else
+				{
+					int sleepVal = std::stoi(oneline);
+					std::cout << "Sleeping " << sleepVal << " ms!" << std::endl;
+					std::this_thread::sleep_for(std::chrono::milliseconds(sleepVal));
+				}
+			}
 		}
 		demodata.close();
 	}
