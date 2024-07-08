@@ -5,6 +5,10 @@
 
 #include <string>
 
+#include <algorithm> 
+#include <cctype>
+#include <locale>
+
 // TODO get rid of this
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
 
@@ -18,6 +22,12 @@ static sockaddr_in server, client;
 
 #define PORT 49200
 #define BUFLEN 61
+
+inline static void rtrim(std::string &s) {
+	s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) {
+		return !std::isspace(ch);
+		}).base(), s.end());
+}
 
 int main()
 {
@@ -80,16 +90,28 @@ int main()
 				// check colons at expected positions
 				if ((message[msgBegin] == 0x2C) && (message[secondColon] == 0x2C))
 				{
-					std::string oneSong(message[msgBegin + 1], 5);
-					std::string verses(message[secondColon + 1], 5);
+					std::string oneSong(&message[msgBegin + 1], 5);
+					std::string verses(&message[secondColon + 1], 5);
 
-					std::cout << "Pisam dataju z kěrlušom " << oneSong << " a stučkami " << verses << "." << std::endl;
+					rtrim(oneSong);
+					rtrim(verses);
+
+					// std::string tmpFileName = std::to_string(index + 1) + ".txt.tmp";
+					std::string fileName = std::to_string(index + 1) + ".txt";
+
+					if (onOff == true)
+					{
+						std::cout << "Pisam dataju z kěrlušom " << oneSong << " a stučkami " << verses
+									<< " do dataju " << fileName << "." << std::endl;
+					}
+					else
+					{
+						std::cout << "Wumazam wobsah dataje " << fileName << "." << std::endl;
+					}
 
 					// write to temp file
 					std::ofstream file;
-					std::string tmpFileName = std::to_string(index) + ".txt.tmp";
-					std::string fileName = std::to_string(index) + ".txt";
-					file.open(tmpFileName);
+					file.open(fileName, std::ios::out | std::ios::trunc);
 					if (onOff == true)
 					{
 						file << oneSong << " " << verses << std::endl;
@@ -101,7 +123,7 @@ int main()
 					file.close();
 
 					// move to correct file (may fail, we don't care)
-					std::rename(tmpFileName.c_str(), fileName.c_str());
+					// std::rename(tmpFileName.c_str(), fileName.c_str());
 				}
 				else
 				{
