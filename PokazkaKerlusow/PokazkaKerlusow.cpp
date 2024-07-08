@@ -1,4 +1,9 @@
-#include <iostream>
+﻿#include <iostream>
+#include <fstream>
+
+#include <cstdio>
+
+#include <string>
 
 // TODO get rid of this
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
@@ -16,6 +21,8 @@ static sockaddr_in server, client;
 
 int main()
 {
+	SetConsoleOutputCP(CP_UTF8);
+
 	// initialise winsock
 	std::cout << "Initialising Winsock...\n";
 	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
@@ -45,12 +52,12 @@ int main()
 
 	while (true)
 	{
-		char message[BUFLEN] = {};
+		char message[BUFLEN + 1] = {0};
 
 		// try to receive some data, this is a blocking call
 		int message_len;
 		int slen = sizeof(sockaddr_in);
-		if ((message_len = recvfrom(server_socket, message, BUFLEN, 0, (sockaddr*)&client, &slen)) == SOCKET_ERROR) {
+		if ((message_len = recvfrom(server_socket, message, BUFLEN, 0, (sockaddr*) &client, &slen)) == SOCKET_ERROR) {
 			std::cout << "recvfrom() failed with error code: " << WSAGetLastError() << "\n";
 			exit(0);
 		}
@@ -59,6 +66,53 @@ int main()
 		std::cout << "Received packet from " << inet_ntoa(client.sin_addr) << " " << ntohs(client.sin_port) << "\n";
 		// TODO take care of zero-termination!
 		std::cout << "Data: " << message << "\n";
+
+		// try to judge overall validity of message
+		if ((message[0] == 0x31) || (message[0] == 0x30))
+		{
+			bool onOff = (message[0] == 0x31) ? true : false;
+
+			for (int index = 0; index < 5; index++)
+			{
+				int msgBegin = (index * 12) + 1;
+				int secondColon = msgBegin + 6;
+
+				// check colons at expected positions
+				if ((message[msgBegin] == 0x2C) && (message[secondColon] == 0x2C))
+				{
+					std::string oneSong(message[msgBegin + 1], 5);
+					std::string verses(message[secondColon + 1], 5);
+
+					std::cout << "Pisam dataju z kěrlušom " << oneSong << " a stučkami " << verses << "." << std::endl;
+
+					// write to temp file
+					std::ofstream file;
+					std::string tmpFileName = std::to_string(index) + ".txt.tmp";
+					std::string fileName = std::to_string(index) + ".txt";
+					file.open(tmpFileName);
+					if (onOff == true)
+					{
+						file << oneSong << " " << verses << std::endl;
+					}
+					else
+					{
+						file << "" << std::endl;
+					}
+					file.close();
+
+					// move to correct file (may fail, we don't care)
+					std::rename(tmpFileName.c_str(), fileName.c_str());
+				}
+				else
+				{
+					std::cout << "Spodźiwna powěsć! Njewočakowane ličby tam hdźež sym wočakował komje." << std::endl;
+				}
+			}
+		}
+		else
+		{
+			std::cout << "Spodźiwna powěsć! Prěnja ličba njeje 0x31 (zaswěčić) ani 0x30 (hasnyć)." << std::endl;
+		}
 	}
 
 	closesocket(server_socket);
