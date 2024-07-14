@@ -4,6 +4,7 @@
 #include <cstdio>
 
 #include <string>
+#include <sstream>
 
 #include <algorithm> 
 #include <cctype>
@@ -29,9 +30,32 @@ inline static void rtrim(std::string &s) {
 		}).base(), s.end());
 }
 
+std::string iso_8859_1_to_utf8(std::string &str)
+{
+	std::stringstream strStr;
+
+	for (std::string::iterator it = str.begin(); it != str.end(); ++it)
+	{
+		uint8_t ch = *it;
+		if (ch < 0x80) {
+			strStr << ch;
+		}
+		else {
+			strStr << static_cast<uint8_t>(0xc0 | ch >> 6);
+			strStr << static_cast<uint8_t>(0x80 | (ch & 0x3f));
+		}
+	}
+
+	return strStr.str();
+}
+
 int main()
 {
 	SetConsoleOutputCP(CP_UTF8);
+
+	// version info
+	std::cout << "Pokazka kěrlušow V0.9.0" << std::endl;
+	std::cout << "=======================" << std::endl;
 
 	// initialise winsock
 	std::cout << "Initialising Winsock...\n";
@@ -96,17 +120,20 @@ int main()
 					rtrim(oneSong);
 					rtrim(verses);
 
+					std::string oneSongUTF8 = iso_8859_1_to_utf8(oneSong);
+					std::string versesUTF8 = iso_8859_1_to_utf8(verses);
+
 					// std::string tmpFileName = std::to_string(index + 1) + ".txt.tmp";
 					std::string fileName = std::to_string(index + 1) + ".txt";
 
 					if (onOff == true)
 					{
-						std::cout << "Pisam dataju z kěrlušom " << oneSong << " a stučkami " << verses
-									<< " do dataju " << fileName << "." << std::endl;
+						std::cout << "Pisam dataju z kěrlušom '" << oneSongUTF8 << "' a stučkami '" << versesUTF8
+									<< "' do dataju '" << fileName << "'." << std::endl;
 					}
 					else
 					{
-						std::cout << "Wumazam wobsah dataje " << fileName << "." << std::endl;
+						std::cout << "Wumazam wobsah dataje '" << fileName << "'." << std::endl;
 					}
 
 					// write to temp file
@@ -114,7 +141,13 @@ int main()
 					file.open(fileName, std::ios::out | std::ios::trunc);
 					if (onOff == true)
 					{
+#if 0
+						// write one line only, with space between kěrluš and stučki
 						file << oneSong << " " << verses << std::endl;
+#endif
+						// separate kěrlus and stučki with new line
+						// unconditionally pad with spaces (1 before, 3 after)
+						file << " " << oneSongUTF8 << "   " << std::endl << " " << versesUTF8 << "   ";
 					}
 					else
 					{
