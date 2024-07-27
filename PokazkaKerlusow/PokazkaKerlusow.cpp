@@ -54,7 +54,7 @@ int main()
 	SetConsoleOutputCP(CP_UTF8);
 
 	// version info
-	std::cout << "Pokazka kěrlušow V0.9.0" << std::endl;
+	std::cout << "Pokazka kěrlušow V0.9.1" << std::endl;
 	std::cout << "=======================" << std::endl;
 
 	// initialise winsock
@@ -114,11 +114,20 @@ int main()
 				// check colons at expected positions
 				if ((message[msgBegin] == 0x2C) && (message[secondColon] == 0x2C))
 				{
+					bool allSpaces = false;
+
 					std::string oneSong(&message[msgBegin + 1], 5);
 					std::string verses(&message[secondColon + 1], 5);
 
 					rtrim(oneSong);
 					rtrim(verses);
+
+					// if both strings are zero-length after trimming, file
+					// content should be empty as if the system was OFF
+					if ((oneSong.length() == 0) && (verses.length() == 0))
+					{
+						allSpaces = true;
+					}
 
 					std::string oneSongUTF8 = iso_8859_1_to_utf8(oneSong);
 					std::string versesUTF8 = iso_8859_1_to_utf8(verses);
@@ -126,7 +135,7 @@ int main()
 					// std::string tmpFileName = std::to_string(index + 1) + ".txt.tmp";
 					std::string fileName = std::to_string(index + 1) + ".txt";
 
-					if (onOff == true)
+					if ((onOff == true) && (allSpaces == false))
 					{
 						std::cout << "Pisam dataju z kěrlušom '" << oneSongUTF8 << "' a stučkami '" << versesUTF8
 									<< "' do dataju '" << fileName << "'." << std::endl;
@@ -139,7 +148,7 @@ int main()
 					// write to temp file
 					std::ofstream file;
 					file.open(fileName, std::ios::out | std::ios::trunc);
-					if (onOff == true)
+					if ((onOff == true) && (allSpaces == false))
 					{
 #if 0
 						// write one line only, with space between kěrluš and stučki
